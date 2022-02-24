@@ -1,47 +1,46 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser, BaseUserManager
+from rest_framework.authtoken.models import Token
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, cpf,  password=None):
+    def create_user(self, cpf,  password, **extra_fields):
         if not cpf:
             raise ValueError('O usuário deve ter um CPF')
-        user = self.model(cpf=cpf)
-        user.save()
-        return user
-
-    def create_superuser(self, cpf, password=None):
-        user = self.model(cpf=cpf)
-        user.is_admin = True
+        user = self.model(cpf=cpf, **extra_fields)
+        Token.objects.create(cpf=cpf)
         user.set_password(password)
         user.save()
         return user
 
+    def create_superuser(self, cpf, password, **extra_fields):
+        
+        user = self.model(
+            cpf=cpf,
+            is_staff=True,
+            is_superuser=True,
+            is_active=True,
+            )
+        Token.objects.create(cpf=cpf)
+        user.set_password(password)
+        user.save()
+        return user
+        
 
 
-class User(AbstractBaseUser):
-    
-    USER_TYPE_CHOICES = (
-        (1, 'admin'),
-        (2, 'publicador'),
-        (3, 'comun')
-    )
+ 
+class User(AbstractUser):
+    cpf = models.CharField(max_length=10,unique=True)
 
-    cpf = models.CharField(max_length=25,unique=True)
-    tipo = models.PositiveSmallIntegerField(choices=USER_TYPE_CHOICES, null=True)
-    is_staff = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-    
-    objects = MyUserManager()
     USERNAME_FIELD = 'cpf'
+    REQUIRED_FIELDS = []
 
-    @property
-    def is_admin(self):
-        return self.admin
+    objects = MyUserManager()
 
-    def has_perm(self, obj=None):
-        return True
-
-    def has_module_perms(self, obj=None):
-        return True
+    publisher = models.BooleanField(default=False)
+    admin = models.BooleanField(default=False)
     
+
+    def __str__(self):
+        return self.cpf
+    
+
