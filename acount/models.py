@@ -14,13 +14,8 @@ class MyUserManager(BaseUserManager):
 
     def create_superuser(self, cpf, password, **extra_fields):
         
-        user = self.model(
-            cpf=cpf,
-            is_staff=True,
-            is_superuser=True,
-            is_active=True,
-            )
-        Token.objects.create(cpf=cpf)
+        user = self.model(cpf=cpf)
+        # Token.objects.create(cpf=cpf)
         user.set_password(password)
         user.save()
         return user
