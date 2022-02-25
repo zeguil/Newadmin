@@ -1,31 +1,37 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from django.conf import settings
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, cpf,  password, **extra_fields):
+    def create_user(self, cpf, password, **extra_fields):
+     
         if not cpf:
-            raise ValueError('O usuário deve ter um CPF')
+            raise ValueError('O cpf deve ser definido')
         user = self.model(cpf=cpf, **extra_fields)
-        Token.objects.create(cpf=cpf)
         user.set_password(password)
         user.save()
         return user
 
     def create_superuser(self, cpf, password, **extra_fields):
-        
-        user = self.model(cpf=cpf)
-        # Token.objects.create(cpf=cpf)
-        user.set_password(password)
-        user.save()
-        return user
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('O superusuário deve ter is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('O superusuário deve ter is_superuser=True.')
+        return self.create_user(cpf, password, **extra_fields)
         
 
 
  
 class User(AbstractUser):
     cpf = models.CharField(max_length=10,unique=True)
-
+    
     USERNAME_FIELD = 'cpf'
     REQUIRED_FIELDS = []
 
@@ -33,9 +39,16 @@ class User(AbstractUser):
 
     publisher = models.BooleanField(default=False)
     admin = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     
-
     def __str__(self):
         return self.cpf
+
     
 
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
