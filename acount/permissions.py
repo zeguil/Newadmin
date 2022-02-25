@@ -7,3 +7,8 @@ class IsAdmin(BasePermission):
 class IsPublisher(BasePermission):
    def has_permission(self, request, view):
       return request.user.publisher
+
+class IsUser(BasePermission):
+   def has_permission(self, request, view):
+      if request.user.admin != True and request.user.publisher != True:
+         return True
