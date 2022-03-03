@@ -120,10 +120,11 @@ AUTH_USER_MODEL = 'acount.User'
 
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [ # need to be list not tuple
-        'CustomAuthentication',
-    ],
+    # 'DEFAULT_PERMISSION_CLASSES': ( 
+    #     'rest_framework.permissions.CustomAuthentication',
+    # ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication'
+        'rest_framework.authentication.TokenAuthentication',
     ),
+    
 }

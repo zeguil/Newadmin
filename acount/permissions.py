@@ -1,14 +1,15 @@
 from rest_framework.permissions import BasePermission
+from django.contrib.auth.models import User
+from rest_framework.exceptions import AuthenticationFailed
 
-class IsAdmin(BasePermission):
-   def has_permission(self, request, view):
-      return request.user.admin
-
-class IsPublisher(BasePermission):
-   def has_permission(self, request, view):
-      return request.user.publisher
-
-class IsUser(BasePermission):
-   def has_permission(self, request, view):
-      if request.user.admin != True and request.user.publisher != True:
-         return True
+class CustomAuthentication(BasePermission):
+   def authenticate(self, request):
+      user = request.GET.get('cpf')
+      if user is None:
+         return None
+      
+      try:
+         user = User.objects.get(cpf=self.request.user)
+      except User.DoesNotExist:
+         raise AuthenticationFailed('usuario não encontrado')
+      return (user, None)

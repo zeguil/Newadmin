@@ -6,11 +6,11 @@ from rest_framework.authtoken.models import Token
 from django.conf import settings
 
 class MyUserManager(BaseUserManager):
-    def create_user(self, cpf, password, **extra_fields):
+    def create_user(self, cpf, password):
      
         if not cpf:
             raise ValueError('O cpf deve ser definido')
-        user = self.model(cpf=cpf, **extra_fields)
+        user = self.model(cpf=cpf)
         user.set_password(password)
         user.save()
         return user
@@ -46,8 +46,6 @@ class User(AbstractUser):
         return self.cpf
 
     
-
-
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender, instance=None, created=False, **kwargs):
     if created:
